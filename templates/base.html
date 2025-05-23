@@ -1,0 +1,777 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}WhatsApp AI Automation{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #25D366;
+            --secondary-green: #128C7E;
+            --dark-green: #075E54;
+            --light-green: #DCF8C6;
+            --gray-bg: #f0f2f5;
+            --shadow: 0 4px 20px rgba(0,0,0,0.1);
+            --shadow-hover: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        * {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body { 
+            background: linear-gradient(135deg, var(--gray-bg) 0%, #e8f5e8 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Navbar Enhancements */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%) !important;
+            box-shadow: var(--shadow);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand i {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Card Enhancements */
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            overflow: hidden;
+            transform: translateY(0);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-bottom: 2px solid var(--primary-green);
+            padding: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-header h5 {
+            margin: 0;
+            color: var(--dark-green);
+        }
+
+        .card-header i {
+            color: var(--primary-green);
+            margin-right: 8px;
+            animation: fadeInLeft 0.6s ease;
+        }
+
+        /* Status Indicators */
+        .status-connected { 
+            color: var(--primary-green);
+            animation: connected-pulse 2s infinite;
+        }
+
+        .status-disconnected { 
+            color: #dc3545;
+            animation: disconnected-blink 1.5s infinite;
+        }
+
+        @keyframes connected-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes disconnected-blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Message Styles */
+        .message-sent {
+            background: linear-gradient(135deg, var(--light-green) 0%, #c8e6c9 100%);
+            border-radius: 18px 18px 5px 18px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            margin-left: 20%;
+            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
+            animation: slideInRight 0.4s ease;
+        }
+
+        .message-received {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            border-radius: 18px 18px 18px 5px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            margin-right: 20%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            animation: slideInLeft 0.4s ease;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Button Enhancements */
+        .btn {
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 12px 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border: none;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            border: none;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+        }
+
+        /* Form Enhancements */
+        .form-control, .form-select {
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 0.2rem rgba(37, 211, 102, 0.25);
+            transform: scale(1.02);
+        }
+
+        /* Toggle Switch */
+        .automation-toggle {
+            font-size: 1.3rem;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-green);
+            border-color: var(--primary-green);
+        }
+
+        .form-switch .form-check-input {
+            width: 3rem;
+            height: 1.5rem;
+        }
+
+        /* Stats Cards */
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            animation: countUp 1s ease;
+        }
+
+        @keyframes countUp {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* QR Code Container */
+        .qr-code-container {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 20px;
+            margin-top: 20px;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .qr-code-container img {
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            animation: zoomIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeInLeft {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Badges */
+        .badge {
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Table Enhancements */
+        .table {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(37, 211, 102, 0.05);
+            transform: scale(1.01);
+        }
+
+        /* Alert Enhancements */
+        .alert {
+            border-radius: 15px;
+            border: none;
+            box-shadow: var(--shadow);
+            animation: slideDown 0.4s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Connection Warning */
+        .border-warning {
+            border: 2px solid #ffc107 !important;
+            animation: warningGlow 2s infinite;
+        }
+
+        @keyframes warningGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 193, 7, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(255, 193, 7, 0.6); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .card {
+                margin-bottom: 1rem;
+            }
+            
+            .message-sent, .message-received {
+                margin-left: 5%;
+                margin-right: 5%;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .stats-number {
+                font-size: 2rem;
+            }
+        }
+
+        /* Scroll Animation */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-hover);
+            cursor: pointer;
+            z-index: 1000;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fab fa-whatsapp"></i> WhatsApp AI Bot
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text" id="connection-status">
+                    <i class="fas fa-circle status-disconnected"></i> Disconnected
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" onclick="scrollToTop()" title="Scroll to top">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global functions
+        async function checkConnection() {
+            try {
+                const response = await fetch('/check-connection', { method: 'POST' });
+                const data = await response.json();
+                
+                const statusElement = document.getElementById('connection-status');
+                if (data.connected) {
+                    statusElement.innerHTML = '<i class="fas fa-circle status-connected"></i> Connected';
+                    document.getElementById('whatsapp-status')?.classList.add('d-none');
+                } else {
+                    const error = await response.json();
+                    showAlert(`❌ ${error.detail || 'Operation failed. Please try again.'}`, 'danger');
+                }
+            } catch (error) {
+                console.error(`Error with ${formId}:`, error);
+                showAlert('❌ Network error. Please check your connection and try again.', 'danger');
+            } finally {
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            }
+        });
+    }
+
+    // Setup all forms
+    setupFormWithLoading('sendMessageForm', 'Message sent successfully! 📱');
+    setupFormWithLoading('scheduleMessageForm', 'Message scheduled successfully! ⏰');
+    setupFormWithLoading('automationRuleForm', 'Automation rule added successfully! 🔧');
+
+    // Enhanced refresh messages with loading animation
+    async function refreshMessages() {
+        const refreshButton = document.querySelector('button[onclick="refreshMessages()"]');
+        const originalText = refreshButton.innerHTML;
+        
+        refreshButton.innerHTML = '<span class="loading-spinner"></span> Refreshing...';
+        refreshButton.disabled = true;
+        
+        try {
+            const response = await fetch('/api/messages');
+            const data = await response.json();
+            
+            const messagesList = document.getElementById('messagesList');
+            messagesList.style.opacity = '0.5';
+            
+            setTimeout(() => {
+                messagesList.innerHTML = '';
+                
+                data.messages.forEach((message, index) => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = message.is_automated ? 'message-sent' : 'message-received';
+                    messageDiv.style.animationDelay = `${index * 0.1}s`;
+                    
+                    const time = new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    messageDiv.innerHTML = `
+                        <strong>${message.contact}</strong>
+                        <small class="text-muted float-end">${time}</small>
+                        <br>
+                        <span>${message.message}</span>
+                        ${message.response ? `
+                            <div class="message-sent mt-1">
+                                <small><i class="fas fa-robot"></i> AI Response:</small><br>
+                                ${message.response}
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    messagesList.appendChild(messageDiv);
+                });
+                
+                messagesList.style.opacity = '1';
+                showAlert('📬 Messages refreshed successfully!', 'info');
+            }, 300);
+            
+        } catch (error) {
+            console.error('Error refreshing messages:', error);
+            showAlert('❌ Failed to refresh messages. Please try again.', 'danger');
+        } finally {
+            setTimeout(() => {
+                refreshButton.innerHTML = originalText;
+                refreshButton.disabled = false;
+            }, 500);
+        }
+    }
+
+    // Enhanced alert system with better animations and emojis
+    function showAlert(message, type) {
+        // Remove existing alerts
+        document.querySelectorAll('.alert').forEach(alert => alert.remove());
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.style.position = 'relative';
+        alertDiv.style.zIndex = '1050';
+        
+        // Add icons based on type
+        const icons = {
+            success: '✅',
+            danger: '❌',
+            warning: '⚠️',
+            info: 'ℹ️'
+        };
+        
+        alertDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                <span class="me-2" style="font-size: 1.2rem;">${icons[type] || ''}</span>
+                <span>${message}</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" onclick="this.parentElement.remove()"></button>
+        `;
+        
+        document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+        
+        // Auto remove after 5 seconds with fade out
+        setTimeout(() => {
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transform = 'translateY(-20px)';
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 5000);
+    }
+
+    // Enhanced delete scheduled message
+    async function deleteScheduled(id) {
+        if (!confirm('🗑️ Are you sure you want to delete this scheduled message?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/delete-scheduled/${id}`, { method: 'DELETE' });
+            
+            if (response.ok) {
+                showAlert('🗑️ Scheduled message deleted successfully!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlert('❌ Failed to delete scheduled message.', 'danger');
+            }
+        } catch (error) {
+            console.error('Error deleting scheduled message:', error);
+            showAlert('❌ Network error while deleting message.', 'danger');
+        }
+    }
+
+    // Smooth scroll animations for better UX
+    function smoothScrollTo(element) {
+        element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+    }
+
+    // Add hover effects to interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add ripple effect to buttons
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.classList.add('ripple');
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        // Add focus animations to form inputs
+        document.querySelectorAll('.form-control, .form-select').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Add typing indicator simulation
+        document.querySelectorAll('textarea').forEach(textarea => {
+            let typingTimer;
+            textarea.addEventListener('input', function() {
+                this.style.borderColor = 'var(--primary-green)';
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(() => {
+                    this.style.borderColor = '#e9ecef';
+                }, 1000);
+            });
+        });
+    });
+
+    // Auto-refresh messages every 30 seconds with visual indicator
+    let refreshInterval = setInterval(() => {
+        const indicator = document.createElement('div');
+        indicator.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-green);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1060;
+            animation: slideIn 0.3s ease;
+        `;
+        indicator.innerHTML = '🔄 Auto-refreshing messages...';
+        document.body.appendChild(indicator);
+        
+        refreshMessages().then(() => {
+            setTimeout(() => {
+                indicator.style.opacity = '0';
+                setTimeout(() => indicator.remove(), 300);
+            }, 2000);
+        });
+    }, 30000);
+
+    // Pause auto-refresh when user is actively typing
+    document.querySelectorAll('input, textarea').forEach(input => {
+        input.addEventListener('focus', () => {
+            clearInterval(refreshInterval);
+            console.log('Auto-refresh paused - user is typing');
+        });
+        
+        input.addEventListener('blur', () => {
+            refreshInterval = setInterval(() => {
+                refreshMessages();
+            }, 30000);
+            console.log('Auto-refresh resumed');
+        });
+    });
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + R or F5 for refresh
+        if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+            e.preventDefault();
+            refreshMessages();
+        }
+        
+        // Ctrl + Enter to submit focused form
+        if (e.ctrlKey && e.key === 'Enter') {
+            const activeForm = document.activeElement.closest('form');
+            if (activeForm) {
+                activeForm.dispatchEvent(new Event('submit'));
+            }
+        }
+    });
+
+    // Add CSS for ripple effect
+    const rippleStyle = document.createElement('style');
+    rippleStyle.textContent = `
+        .btn {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple-animation {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(rippleStyle);
+</script>
+{% endblock %}
+                    statusElement.innerHTML = '<i class="fas fa-circle status-disconnected"></i> Disconnected';
+                }
+                
+                return data.connected;
+            } catch (error) {
+                console.error('Error checking connection:', error);
+                return false;
+            }
+        }
+
+        async function getQRCode() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="loading-spinner"></span> Loading...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/qr-code');
+                const data = await response.json();
+                
+                if (data.qr_code) {
+                    document.getElementById('qr-display').innerHTML = 
+                        `<img src="${data.qr_code}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+                         <p class="mt-3">Scan this QR code with WhatsApp</p>`;
+                }
+            } catch (error) {
+                console.error('Error getting QR code:', error);
+                showAlert('Failed to get QR code. Please try again.', 'danger');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // Scroll to top function
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Animate elements on scroll
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.animate-on-scroll');
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < window.innerHeight - elementVisible) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+
+        // Add scroll animation class to cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.classList.add('animate-on-scroll');
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+            
+            animateOnScroll();
+            checkConnection();
+        });
+
+        window.addEventListener('scroll', animateOnScroll);
+
+        // Check connection every 10 seconds
+        setInterval(checkConnection, 10000);
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
