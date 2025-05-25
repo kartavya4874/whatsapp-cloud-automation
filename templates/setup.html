@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Setup - Scan QR Code</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .setup-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #25D366;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .setup-steps {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .step:last-child {
+            margin-bottom: 0;
+        }
+        
+        .step-number {
+            background: #25D366;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            background: #128C7E;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        .status.waiting {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #25D366;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .qr-instructions {
+            background: #e8f5e8;
+            border: 1px solid #25D366;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .qr-instructions h3 {
+            color: #25D366;
+            margin-bottom: 10px;
+        }
+        
+        .qr-instructions p {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="logo">📱</div>
+        <h1>WhatsApp Setup</h1>
+        <p class="subtitle">Connect your WhatsApp to start automation</p>
+        
+        <div class="setup-steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>Click "Open WhatsApp Web" to start</div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>A Chrome browser window will open</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>Scan the QR code with your phone</div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>Wait for connection confirmation</div>
+            </div>
+        </div>
+        
+        <div id="statusMessage" class="status hidden">
+            <div class="loading hidden" id="loadingSpinner"></div>
+            <span id="statusText"></span>
+        </div>
+        
+        <div id="qrInstructions" class="qr-instructions hidden">
+            <h3>📱 Scan QR Code</h3>
+            <p>1. Open WhatsApp on your phone<br>
+            2. Go to Settings → Linked Devices<br>
+            3. Tap "Link a Device"<br>
+            4. Scan the QR code in the Chrome window</p>
+        </div>
+        
+        <button id="openWhatsAppBtn" class="btn" onclick="initializeWhatsApp()">
+            Open WhatsApp Web
+        </button>
+        
+        <button id="checkStatusBtn" class="btn hidden" onclick="checkConnection()">
+            Check Connection Status
+        </button>
+        
+        <button id="goToDashboardBtn" class="btn hidden" onclick="goToDashboard()">
+            Go to Dashboard
+        </button>
+    </div>
+
+    <script>
+        let checkingStatus = false;
+        let statusInterval = null;
+
+        function showStatus(message, type = 'waiting', showSpinner = false) {
+            const statusDiv = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            statusDiv.className = `status ${type}`;
+            statusText.textContent = message;
+            
+            if (showSpinner) {
+                loadingSpinner.classList.remove('hidden');
+            } else {
+                loadingSpinner.classList.add('hidden');
+            }
+            
+            statusDiv.classList.remove('hidden');
+        }
+
+        function hideStatus() {
+            document.getElementById('statusMessage').classList.add('hidden');
+        }
+
+        async function initializeWhatsApp() {
+            const btn = document.getElementById('openWhatsAppBtn');
+            btn.disabled = true;
+            btn.textContent = 'Opening...';
+            
+            showStatus('Initializing WhatsApp Web...', 'waiting', true);
+            
+            try {
+                const response = await fetch('/initialize-whatsapp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('WhatsApp Web opened! Please scan the QR code in the Chrome window.', 'waiting');
+                    document.getElementById('qrInstructions').classList.remove('hidden');
+                    document.getElementById('checkStatusBtn').classList.remove('hidden');
+                    btn.classList.add('hidden');
+                    
+                    // Start auto-checking status
+                    startStatusChecking();
+                } else {
+                    showStatus(`Error: ${result.message}`, 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Open WhatsApp Web';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Failed to initialize WhatsApp. Please try again.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Open WhatsApp Web';
+            }
+        }
+
+        async function checkConnection() {
+            if (checkingStatus) return;
+            
+            checkingStatus = true;
+            showStatus('Checking connection status...', 'waiting', true);
+            
+            try {
+                const response = await fetch('/check-qr-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.connected) {
+                    showStatus('✅ WhatsApp connected successfully!', 'success');
+                    document.getElementById('goToDashboardBtn').classList.remove('hidden');
+                    document.getElementById('checkStatusBtn').classList.add('hidden');
+                    document.getElementById('qrInstructions').classList.add('hidden');
+                    
+                    // Stop auto-checking
+                    if (statusInterval) {
+                        clearInterval(statusInterval);
+                    }
+                    
+                    // Auto-redirect after 2 seconds
+                    setTimeout(() => {
+                        goToDashboard();
+                    }, 2000);
+                } else {
+                    showStatus(result.message || 'Still waiting for QR code scan...', 'waiting');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Error checking connection. Please try again.', 'error');
+            }
+            
+            checkingStatus = false;
+        }
+
+        function startStatusChecking() {
+            // Check status every 3 seconds
+            statusInterval = setInterval(checkConnection, 3000);
+        }
+
+        function goToDashboard() {
+            showStatus('Redirecting to dashboard...', 'success', true);
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1000);
+        }
+
+        // Check if already connected on page load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                
+                if (status.whatsapp_connected && status.setup_complete) {
+                    showStatus('WhatsApp is already connected!', 'success');
+                    document.getElementById('goToDashboardBtn').classList.remove('hidden');
+                    document.getElementById('openWhatsAppBtn').classList.add('hidden');
+                }
+            } catch (error) {
+                console.log('Status check failed, showing normal setup');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Automation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4757;
+        }
+
+        .status-dot.connected {
+            background: #2ed573;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn.success {
+            background: #2ed573;
+        }
+
+        .btn.success:hover {
+            background: #26d0ce;
+        }
+
+        .btn.danger {
+            background: #ff4757;
+        }
+
+        .btn.danger:hover {
+            background: #ff3838;
+        }
+
+        .btn.toggle {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .automation-status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .automation-status.active {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .automation-status.inactive {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .messages-section {
+            grid-column: span 2;
+        }
+
+        .messages-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+        }
+
+        .message-item {
+            padding: 15px;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .message-item:last-child {
+            border-bottom: none;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-contact {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .message-text {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .message-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .message-badge.automated {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .message-badge.manual {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .rules-list {
+            margin-top: 20px;
+        }
+
+        .rule-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .rule-trigger {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .rule-response {
+            color: #555;
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: #2ed573;
+        }
+
+        .toast.error {
+            background: #ff4757;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .messages-section {
+                grid-column: span 1;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>📱 WhatsApp Automation Dashboard</h1>
+            <div class="status-indicator">
+                <div class="status-dot {% if whatsapp_connected %}connected{% endif %}"></div>
+                <span>{% if whatsapp_connected %}Connected{% else %}Disconnected{% endif %}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="dashboard-grid">
+            <!-- Automation Control -->
+            <div class="card">
+                <h2>🤖 Automation Control</h2>
+                
+                <div class="automation-status {% if automation_active %}active{% else %}inactive{% endif %}" id="automationStatus">
+                    {% if automation_active %}
+                        ✅ Automation is ACTIVE
+                    {% else %}
+                        ⏸️ Automation is INACTIVE
+                    {% endif %}
+                </div>
+                
+                <button class="btn toggle {% if automation_active %}danger{% else %}success{% endif %}" 
+                        id="toggleBtn" onclick="toggleAutomation()">
+                    {% if automation_active %}
+                        🛑 Stop Automation
+                    {% else %}
+                        ▶️ Start Automation
+                    {% endif %}
+                </button>
+                
+                <div class="form-group">
+                    <label>📊 Quick Stats</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                        <div style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #667eea;">{{ messages|length }}</div>
+                            <div style="font-size: 12px; color: #666;">Recent Messages</div>
+                        </div>
+                        <div style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-size: 24px; font-weight: bold; color: #2ed573;">{{ automation_rules|length }}</div>
+                            <div style="font-size: 12px; color: #666;">Active Rules</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Send Message -->
+            <div class="card">
+                <h2>💬 Send Message</h2>
+                <form id="sendMessageForm" onsubmit="sendMessage(event)">
+                    <div class="form-group">
+                        <label>Contact Name/Number</label>
+                        <input type="text" name="contact" required placeholder="John Doe or +1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea name="message" required rows="4" placeholder="Type your message here..."></textarea>
+                    </div>
+                    <button type="submit" class="btn">📤 Send Message</button>
+                </form>
+            </div>
+
+            <!-- Schedule Message -->
+            <div class="card">
+                <h2>⏰ Schedule Message</h2>
+                <form id="scheduleMessageForm" onsubmit="scheduleMessage(event)">
+                    <div class="form-group">
+                        <label>Contact Name/Number</label>
+                        <input type="text" name="contact" required placeholder="John Doe or +1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea name="message" required rows="3" placeholder="Your scheduled message..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Schedule (e.g., "daily at 09:00")</label>
+                        <input type="text" name="schedule_time" required placeholder="daily at 09:00">
+                    </div>
+                    <button type="submit" class="btn">⏰ Schedule Message</button>
+                </form>
+
+                {% if scheduled_messages %}
+                <div style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 10px; font-size: 16px;">📅 Scheduled Messages</h3>
+                    {% for msg in scheduled_messages %}
+                    <div class="rule-item">
+                        <div class="rule-trigger">{{ msg.contact }} - {{ msg.scheduled_time }}</div>
+                        <div class="rule-response">{{ msg.message[:50] }}...</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Automation Rules -->
+            <div class="card">
+                <h2>🔧 Automation Rules</h2>
+                <form id="addRuleForm" onsubmit="addAutomationRule(event)">
+                    <div class="form-group">
+                        <label>Trigger Keyword</label>
+                        <input type="text" name="trigger_keyword" required placeholder="hello, help, info">
+                    </div>
+                    <div class="form-group">
+                        <label>Response Template</label>
+                        <textarea name="response_template" required rows="3" placeholder="Hi! How can I help you today?"></textarea>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="use_ai" id="useAi" checked>
+                        <label for="useAi">🤖 Use AI to personalize response</label>
+                    </div>
+                    <button type="submit" class="btn">✅ Add Rule</button>
+                </form>
+
+                {% if automation_rules %}
+                <div class="rules-list">
+                    {% for rule in automation_rules %}
+                    <div class="rule-item">
+                        <div class="rule-trigger">🔑 "{{ rule.trigger_keyword }}"</div>
+                        <div class="rule-response">{{ rule.response_template }}</div>
+                        {% if rule.use_ai %}
+                        <div style="font-size: 12px; color: #667eea; margin-top: 5px;">🤖 AI Enhanced</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Recent Messages -->
+            <div class="card messages-section">
+                <h2>💬 Recent Messages</h2>
+                <div class="messages-list" id="messagesList">
+                    {% for message in messages %}
+                    <div class="message-item">
+                        <div class="message-content">
+                            <div class="message-contact">{{ message.contact }}</div>
+                            <div class="message-text">{{ message.message }}</div>
+                            {% if message.response %}
+                            <div class="message-text" style="color: #667eea; font-style: italic;">
+                                → {{ message.response }}
+                            </div>
+                            {% endif %}
+                            <div class="message-time">{{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div class="message-badge {% if message.is_automated %}automated{% else %}manual{% endif %}">
+                            {% if message.is_automated %}🤖 Auto{% else %}👤 Manual{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        async function toggleAutomation() {
+            try {
+                const response = await fetch('/toggle-automation', { method: 'POST' });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    throw new Error('Failed to toggle automation');
+                }
+            } catch (error) {
+                showToast('Error toggling automation', 'error');
+            }
+        }
+
+        async function sendMessage(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            try {
+                const response = await fetch('/send-message', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    showToast('Message sent successfully!');
+                    event.target.reset();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    throw new Error('Failed to send message');
+                }
+            } catch (error) {
+                showToast('Error sending message', 'error');
+            }
+        }
+
+        async function scheduleMessage(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            try {
+                const response = await fetch('/schedule-message', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    showToast('Message scheduled successfully!');
+                    event.target.reset();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    throw new Error('Failed to schedule message');
+                }
+            } catch (error) {
+                showToast('Error scheduling message', 'error');
+            }
+        }
+
+        async function addAutomationRule(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            
+            try {
+                const response = await fetch('/add-automation-rule', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    showToast('Automation rule added successfully!');
+                    event.target.reset();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    throw new Error('Failed to add rule');
+                }
+            } catch (error) {
+                showToast('Error adding automation rule', 'error');
+            }
+        }
+
+        // Auto-refresh messages every 30 seconds
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/messages');
+                const data = await response.json();
+                // Update messages list if needed
+            } catch (error) {
+                console.log('Error refreshing messages');
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

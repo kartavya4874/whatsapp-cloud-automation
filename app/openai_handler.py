@@ -1,15 +1,40 @@
-import openai
-from app.config import config
 from typing import List, Dict
 import json
+import os
 
 class OpenAIHandler:
     def __init__(self):
-        openai.api_key = config.OPENAI_API_KEY
+        self.client = None
         self.conversation_history = {}
+        self._initialize_client()
+    
+    def _initialize_client(self):
+        """Initialize OpenAI client with error handling"""
+        try:
+            from openai import OpenAI
+            from app.config import config
+            
+            api_key = getattr(config, 'OPENAI_API_KEY', None) or os.getenv('OPENAI_API_KEY')
+            
+            if not api_key:
+                print("Warning: No OpenAI API key found. AI features will be disabled.")
+                return
+            
+            self.client = OpenAI(api_key=api_key)
+            print("OpenAI client initialized successfully")
+            
+        except ImportError as e:
+            print(f"OpenAI library not found: {e}")
+            print("Install with: pip install openai")
+        except Exception as e:
+            print(f"Failed to initialize OpenAI client: {e}")
+            print("AI features will be disabled")
     
     def generate_response(self, message: str, contact: str, context: str = None) -> str:
         """Generate AI response using OpenAI GPT"""
+        if not self.client:
+            return "AI is currently unavailable. Please check your OpenAI API configuration."
+        
         try:
             # Initialize conversation history for contact if not exists
             if contact not in self.conversation_history:
@@ -37,7 +62,7 @@ class OpenAIHandler:
             messages = [{"role": "system", "content": system_prompt}]
             messages.extend(self.conversation_history[contact])
             
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=messages,
                 max_tokens=150,
@@ -60,6 +85,9 @@ class OpenAIHandler:
     
     def generate_scheduled_message(self, template: str, contact: str, **kwargs) -> str:
         """Generate personalized scheduled message"""
+        if not self.client:
+            return template  # Fallback to original template
+            
         try:
             prompt = f"""
             Create a personalized message based on this template: "{template}"
@@ -67,7 +95,7 @@ class OpenAIHandler:
             Additional info: {json.dumps(kwargs)}
             """
             
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=100,
@@ -82,13 +110,16 @@ class OpenAIHandler:
     
     def analyze_sentiment(self, message: str) -> Dict:
         """Analyze message sentiment"""
+        if not self.client:
+            return {"sentiment": "neutral", "confidence": 0.5}
+            
         try:
             prompt = f"""
             Analyze the sentiment of this message: "{message}"
             Respond with JSON format: {{"sentiment": "positive/negative/neutral", "confidence": 0.0-1.0}}
             """
             
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=50,
@@ -101,4 +132,3 @@ class OpenAIHandler:
         except Exception as e:
             print(f"Error analyzing sentiment: {e}")
             return {"sentiment": "neutral", "confidence": 0.5}
-
